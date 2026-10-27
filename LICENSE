@@ -1,0 +1,13 @@
+Copyright (c) 2026-present, Nikita Tikhonov (nekitdev)
+
+All rights reserved.
+
+The posts in this repository (the `posts/` directory and the assets they use)
+may not be reproduced, distributed, or adapted without prior written permission,
+except as permitted by applicable law, such as quotation with attribution.
+
+Code snippets within the posts are additionally available under the MIT License,
+unless stated otherwise.
+
+The `packages/` directory containes third-party Typst packages, each distributed
+under its own license, as included in the package's directory.
