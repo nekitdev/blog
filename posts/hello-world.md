@@ -19,7 +19,7 @@ Open the case, and there's a Raspberry Pi 5 inside, which you can monitor in rea
 [`/host`][host].
 
 The box runs NixOS, and getting the Pi 5 to boot it turned into a long-term love-hate relationship.
-The disk is ZFS on top of LUKS, unlocked with my YubiKey over FIDO2,
+The disk is ZFS on top of LUKS, unlocked with my YubiKey,
 or a passphrase in case anything happens to the key.
 Which means someone walking off with the Pi gets a rather small, well-encrypted brick. ^^
 
