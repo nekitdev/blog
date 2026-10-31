@@ -60,16 +60,90 @@ So, in the end, the only way in is from the inside out. :D
 
 ## the site
 
+## the site
+
+Everything you see here is written in Rust, from the server to the WebAssembly running
+in your browser right now. Well, with two exceptions: a tiny bit of CSS for styling
+and a few lines of JS --- I'll explain that later. ;)
+
+The site is built with Dioxus in fullstack mode. The server renders each page to plain HTML,
+so it's displayed right away, while your browser loads the WebAssembly in the background.
+Once loaded, the WASM takes over the page that's already there, which is called _hydration_.
+
+If your connection is slow enough, you can catch the spinner in the footer before
+the page is hydrated. After hydration, the spinner turns into `?`,
+which opens the keyboard shortcuts --- more on them later.
+On a faster connection or once the WASM is cached, the spinner's gone before you notice;
+you can bring it back by disabling the cache and throttling the connection.
+
+The design is largely borrowed from my favorite place on every computer: the terminal!
+Everything is monospace, mostly lowercase, and nothing moves unless you ask it to.
+
+At the bottom of every page there's a status bar, `tmux`-style: the current server time,
+the `?` I mentioned before, a little `<3`, my phone's battery level (please don't worry if it's red)
+and, last but not least, the theme switcher.
+
+Click `system` in the status bar to cycle through `system`, `dark` and `light`,
+or just press `t` on your keyboard if you have one.
+Clicking the question mark or pressing `?` toggles the list of keyboard shortcuts ---
+the site is meant to be usable without touching the mouse, which gives it some `vim` vibes.
+
+There's exactly one bit of JS I wrote by hand: the few lines that apply the theme
+before the page renders, so dark-mode people, myself included, don't get flashbanged.
+Everything else, CSS aside, is Rust, as promised! ^^
+
+The [`/blog`][blog] page is basically `ls -l` output: dates on the left,
+everything else on the right. And the [`/host`][host] page shows what the box from earlier
+is up to right now, with `htop`-style bars for CPU, memory and swap. At the time of writing,
+`pi` has been up for almost two weeks with a load average of something like `0.03 0.14 0.15`
+while running a k3s server and several pods. It's a rather relaxed computer when it isn't,
+you know, compiling the kernel. :p
+
+## load average?
+
+Pressing `^C` won't save you now: we're taking a math detour!
+
+Those three numbers you've seen are the load average over the last 1, 5 and 15 minutes.
+You probably already knew that, but do you know how they're calculated?
+
+Every five seconds, the kernel counts how many tasks are running or waiting to run
+(or stuck waiting on disk), and folds that count into each one of the averages: $$
+L_t = lambda L_(t - 1) + (1 - lambda) n_t
+$$
+
+Here $t$ counts the 5-second updates (_ticks_), $n_t$ is the number of tasks at tick $t$,
+and $L_(t - 1)$ is the previous value.
+
+As for the weight $lambda$, it follows exponential decay: $$
+lambda = e^(- Delta T slash tau)
+$$
+with $Delta T = 5$ seconds per tick and $tau = 60 m$ seconds, where $m in {1, 5, 15}$
+is the window in minutes.
+
+In numbers, here's how much of each new count contributes to the average, $alpha = 1 - lambda$:
+
+| $m$  | $alpha$   |
+| ---- | --------- |
+| $1$  | $0.07996$ |
+| $5$  | $0.01653$ |
+| $15$ | $0.00554$ |
+
+So the first number jumps around while the last one barely moves.
+
+Honestly, this detour was partly an excuse to show off the server-side math rendering I added,
+but it's over now, and `^C` works again! ;)
+
 ## live things
 
 ## this blog
 
 ## why `;`
 
-## quantum
+## what's next?
 
 $$
-  i planck partial / (partial t) ket(psi) = hat(H) ket(psi)
+  ket(psi) = alpha ket(0) + beta ket(1)
 $$
 
 [host]: https://nekit.dev/host
+[blog]: https://nekit.dev/blog
