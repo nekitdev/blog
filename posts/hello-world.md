@@ -60,8 +60,6 @@ So, in the end, the only way in is from the inside out. :D
 
 ## the site
 
-## the site
-
 Everything you see here is written in Rust, from the server to the WebAssembly running
 in your browser right now. Well, with two exceptions: a tiny bit of CSS for styling
 and a few lines of JS --- I'll explain that later. ;)
