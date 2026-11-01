@@ -1,9 +1,8 @@
 +++
 title = "hello, world;"
 description = "how the site is run: raspberry pi, phone battery, and too much rust"
-date = 2026-10-31
+date = 2026-11-01
 tags = ["homelab", "rust", "nix"]
-draft = true
 preamble = """
 #import "@personal/quantum:0.1.0": ket
 """
@@ -51,10 +50,10 @@ The server routes traffic from Cloudflare to the box via the tailnet, my private
 - _The box_, you've already met. ^^
 
 "Why the VPS?" my dear reader may be wondering. Well, the Pi cannot connect directly to Cloudflare
-due to the imposed restrictions: connections from Russia to Cloudflare are throttled,
+due to restrictions: connections from Russia to Cloudflare are throttled,
 and often dropped altogether.
 Instead of routing the Pi through proxies, I opted for Tailscale and let the VPS talk to Cloudflare,
-which turned out much more stable and faster overall.
+which turned out to be much more stable and faster overall.
 
 So, in the end, the only way in is from the inside out. :D
 
@@ -118,7 +117,7 @@ $$
 with $Delta T = 5$ seconds per tick and $tau = 60 m$ seconds, where $m in {1, 5, 15}$
 is the window in minutes.
 
-In numbers, here's how much of each new count contributes to the average, $alpha = 1 - lambda$:
+In numbers, here's how much each new count contributes to the average, $alpha = 1 - lambda$:
 
 | $m$  | $alpha$   |
 | ---- | --------- |
@@ -133,15 +132,119 @@ but it's over now, and `^C` works again! ;)
 
 ## live things
 
+Several parts of this site don't just render once --- they keep changing in your browser.
+
+The [`/host`][host] page (yes, I've mentioned it for the third time >.>) streams `pi`'s statistics
+right to your browser: the server reads them using the `sysinfo` crate and sends a fresh
+snapshot every two seconds. I initially implemented polling --- your browser would simply
+hit one endpoint over and over, a request every two seconds for every open tab, which is no good.
+In the end, I settled on server-sent events (SSE): no polling, no websockets, just one long-lived
+HTTP response that never quite finishes, which you can observe at [`/host/events`][events], or with
+
+```console
+$ curl --no-buffer https://nekit.dev/host/events
+```
+
+The battery level in the status bar is my actual phone's. iOS Shortcuts automations fire every time
+the charge hits some multiple of five (so whenever $5 divides p$, where $p$ is the percentage)
+and send a `PATCH` to [`battery.nekit.dev`][battery]. There's a secret key involved, so no,
+you can't set my battery to 69%. If it's red, I'm probably out somewhere and forgot my charger.
+
+And the clock shows the time where I am: Moscow, which has stayed on a fixed UTC+3 since 2014,
+so `jiff`, the date-time crate I'm using, doesn't even have to think about daylight saving.
+
 ## this blog
+
+The blog lives in its own [repository][repository], with two directories: `packages` and `posts`.
+
+Posts are plain Markdown files with some TOML on top. For instance, this post lives at
+`posts/hello-world.md` and has this metadata:
+
+```toml
+title = "hello, world;"
+description = "how the site is run: raspberry pi, phone battery, and too much rust"
+date = 2026-11-01
+tags = ["homelab", "rust", "nix"]
+preamble = """
+#import "@personal/quantum:0.1.0": ket
+"""
+```
+
+Rendering is handled by `nekit-render`, an unpublished (but open source! uwu) crate of mine:
+`pulldown-cmark` turns the Markdown into HTML, and every bit of math goes through Typst,
+which compiles it to SVG right on the server. That's how the load average formulas got here:
+no MathJax, no KaTeX, nothing rendering in your browser --- by the time the page reaches you,
+the math is just images. Posts can even bring in their own Typst preamble and packages,
+which live in the `packages` directory, so `$ket(Psi)$` renders to $ket(Psi)$ just fine. :>
+
+Getting posts onto the box doesn't involve any deploys either. `git-sync` runs in the same pod
+as the site and pulls the repository every minute; the server watches the checkout,
+and whenever it changes, re-renders everything and swaps it in. So publishing a draft post
+means removing `draft = true` and pushing, and fixing typos means... well, pushing again.
+Within a minute or so, it's live for you to enjoy! <3
 
 ## why `;`
 
+You might have noticed semicolons all over the place: in the title, in the site's icon, and so on.
+That's not an accident; `;` means a lot of things to me at once.
+
+To a programmer, it's the most ordinary character there is. In Rust, it turns an expression
+into a statement: `nekit.code()` evaluates to something (that hopefully compiles),
+while in `nekit.cry();`, the semicolon throws the result away. It happens,
+nobody gets to see what came of it, and the block carries on as if it were `()`.
+
+In writing, a semicolon joins two complete thoughts that belong together. It's a pause,
+not a stop: the author could have ended the sentence there, but chose not to.
+
+The last idea is also why it's a mental health, suicide and addiction awareness symbol:
+your story isn't over, it just has a semicolon in it.
+
+And a week before this post went live, I had one tattooed behind my ear, set in
+JetBrains Mono, of course. So now it's not just in my code and in my writing, it's on me too. ^^
+
 ## what's next?
 
-$$
-  ket(psi) = alpha ket(0) + beta ket(1)
-$$
+I've been working on several things, some of which are likely to end up here.
+
+### `qstd`
+
+A crate for quantum computing, where the type system enforces the no-cloning theorem:
+qubits (aka $ket(psi) = alpha ket(0) + beta ket(1)$) are `!Clone`, mutably borrowed when gates
+operate on them, and moved into `discard` (or measured with `take`) instead of being silently
+dropped and lost.
+
+### quantum programming
+
+I recently gave a talk on quantum programming, an introduction for fellow CS students,
+and it deserves to become a post (or a few) once I've turned the slides into prose. owo
+
+### `jiyu`
+
+A Rust application for managing sing-box and xray subscriptions. [`jiyu`][jiyu] (自由, _freedom_)
+pings servers concurrently, picks the best one and supervises the preferred core as a daemon.
+
+It's grown from a weekend script into a whole workspace due to my perfectionism, and its installer
+at [`install.jiyu.sh`][install] is, of course, served from `pi`, to be executed like so:
+
+```console
+$ curl -fsSL https://install.jiyu.sh/ | sh
+```
+
+This project is very much a work in progress, so the installer (yes, `curl | sh`, I know :p)
+doesn't do much at the time of writing.
+
+## goodbye, world;
+
+Thanks for reading! This isn't the end, just a semicolon ;)
+
+```text
+Connection to nekit.dev closed.
+```
 
 [host]: https://nekit.dev/host
 [blog]: https://nekit.dev/blog
+[events]: https://nekit.dev/host/events
+[battery]: https://battery.nekit.dev/
+[repository]: https://github.com/nekitdev/blog
+[jiyu]: https://github.com/jiyu-sh/jiyu
+[install]: https://install.jiyu.sh/
