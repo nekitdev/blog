@@ -9,5 +9,5 @@ except as permitted by applicable law, such as quotation with attribution.
 Code snippets within the posts are additionally available under the MIT License,
 unless stated otherwise.
 
-The `packages/` directory containes third-party Typst packages, each distributed
+The `packages/` directory contains third-party Typst packages, each distributed
 under its own license, as included in the package's directory.
